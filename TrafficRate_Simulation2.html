@@ -1,0 +1,396 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+      html, body {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      #map {
+        /* configure the size of the map */
+        width: 100%;
+        height: 100%;
+      }
+      .float {
+          position: fixed;
+          width: 200px;
+          height: 50px;
+          top: 15px;
+          right: 15px;
+          background-color: #17A67E;
+          color: #FFF;
+          border-radius: 15px;
+          text-align: center;
+          box-shadow: 0px 3px 4px rgba(0, 0, 0, 0.2);
+        }
+        a:link {
+        text-decoration: none;
+        }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <a href="#" class="float" data-toggle="modal" data-target="#note_creation_dialog" onclick="toggleClick(mapRunning); return false;">
+        <p id="randomize_toggle_text" style="font-size: 1.5em; font-family: 'Roboto', sans-serif; margin-top:calc(22px - 0.5em);">Стоп</p>    
+    </a>
+    <script>
+        function toggleClick(crmap) {
+            if (document.getElementById("randomize_toggle_text").innerHTML == "Стоп") {
+                clearInterval(crmap);
+                document.getElementById("randomize_toggle_text").innerHTML = "Старт";
+            }
+            else {
+                location.reload();
+            }
+        }
+
+        /*
+        * L.TileLayer.Grayscale is a regular tilelayer with grayscale makeover.
+        */
+
+        L.TileLayer.Grayscale = L.TileLayer.extend({
+            options: {
+                quotaRed: 21,
+                quotaGreen: 71,
+                quotaBlue: 8,
+                quotaDividerTune: 0,
+                quotaDivider: function() {
+                    return this.quotaRed + this.quotaGreen + this.quotaBlue + this.quotaDividerTune;
+                }
+            },
+
+            initialize: function (url, options) {
+                options = options || {}
+                options.crossOrigin = true;
+                L.TileLayer.prototype.initialize.call(this, url, options);
+
+                this.on('tileload', function(e) {
+                    this._makeGrayscale(e.tile);
+                });
+            },
+
+            _createTile: function () {
+                var tile = L.TileLayer.prototype._createTile.call(this);
+                tile.crossOrigin = "Anonymous";
+                return tile;
+            },
+
+            _makeGrayscale: function (img) {
+                if (img.getAttribute('data-grayscaled'))
+                    return;
+
+                        img.crossOrigin = '';
+                var canvas = document.createElement("canvas");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+
+                var imgd = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                var pix = imgd.data;
+                for (var i = 0, n = pix.length; i < n; i += 4) {
+                                pix[i] = pix[i + 1] = pix[i + 2] = (this.options.quotaRed * pix[i] + this.options.quotaGreen * pix[i + 1] + this.options.quotaBlue * pix[i + 2]) / this.options.quotaDivider();
+                }
+                ctx.putImageData(imgd, 0, 0);
+                img.setAttribute('data-grayscaled', true);
+                img.src = canvas.toDataURL();
+            }
+        });
+
+        L.tileLayer.grayscale = function (url, options) {
+            return new L.TileLayer.Grayscale(url, options);
+        };
+
+        
+
+
+
+      // initialize Leaflet
+      var map = L.map('map').setView({lon: 27.92077, lat: 43.20983}, 18);
+
+      // add the OpenStreetMap tiles
+      L.tileLayer.grayscale('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19, minZoom: 17,
+        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+      }).addTo(map);
+
+      // show the scale bar on the lower left corner
+      L.control.scale().addTo(map);
+
+      var popup = L.popup();
+
+        function onMapClick(e) {
+            /**popup
+                .setLatLng(e.latlng)
+                .setContent("You clicked the map at " + e.latlng.toString())
+                .openOn(map);*/
+        }
+
+        map.on('click', onMapClick);
+
+        /// 8PM Telenor
+        var latlngs = [
+            [43.20973, 27.92075],
+            [43.20738, 27.91763]
+        ];
+        var polyline_b5 = L.polyline(latlngs, {color: 'green'}).addTo(map);
+
+        /// 8PM Varchev
+        var latlngs = [
+            [43.20748, 27.91753],
+            [43.20982, 27.92064]
+        ];
+        var polyline_b6 = L.polyline(latlngs, {color: '#00B52A'}).addTo(map);
+
+        /// CO Parkmart
+        var latlngs = [
+            [43.20974, 27.92082],
+            [43.20829, 27.92286]
+        ];
+        var polyline_b4 = L.polyline(latlngs, {color: 'green'}).addTo(map);
+
+        /// CO Hell's food
+        var latlngs = [
+            [43.20837, 27.92294],
+            [43.2098, 27.92092]
+        ];
+        var polyline_b3 = L.polyline(latlngs, {color: 'green'}).addTo(map);
+
+        /// 8PM Cherven Ploshtad
+        var latlngs = [
+            [43.20986, 27.92092],
+            [43.21249, 27.92435]
+        ];
+        var polyline_b2 = L.polyline(latlngs, {color: 'green'}).addTo(map);
+
+        /// 8PM Aladin
+        var latlngs = [
+            [43.20994, 27.9208],
+            [43.21256, 27.92424]
+        ];
+        var polyline_b1 = L.polyline(latlngs, {color: 'green'}).addTo(map);
+
+        /// CO OBB
+        var latlngs = [
+            [43.20987, 27.92063],
+            [43.21212, 27.91742]
+        ];
+        var polyline_b7 = L.polyline(latlngs, {color: 'green'}).addTo(map);
+
+        /// CO Aladin
+        var latlngs = [
+            [43.20994, 27.92073],
+            [43.21217, 27.91752]
+        ];
+        var polyline_b8 = L.polyline(latlngs, {color: 'green'}).addTo(map);
+
+        /// PMD
+        var latlngs = [
+            [43.21058, 27.92004],
+            [43.21217, 27.92207]
+        ];
+        var polyline_s1 = L.polyline(latlngs, {color: 'green'}).addTo(map);
+
+        /// GSt
+        var latlngs = [
+            [43.2108, 27.92047],
+            [43.21034, 27.9211]
+        ];
+        var polyline_s2 = L.polyline(latlngs, {color: 'green'}).addTo(map);
+        
+        /// GCi
+        var latlngs = [
+            [43.21113, 27.92088],
+            [43.21068, 27.92152]
+        ];
+        var polyline_s3 = L.polyline(latlngs, {color: 'green'}).addTo(map);
+
+        var carIcon = L.icon({
+            iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAQAAAD8x0bcAAAAiklEQVQoz2NgGMxAhaGSoR4JVgJF0AAzw12G1wz3keBroAgzqiJfhn8MGigi6kARX1RFmxkOYjhgP1AUCcgy/GH4gGIZCH4AisoiFPkw/McBfVAV/WMIZJgCl5wC5P3DpsidoROuqBPIw6KIKOsIKvIGcuswgqAOKOqN4HIzODCIYygSB4pyUzfuAb7eXFgdEB9lAAAAAElFTkSuQmCC',
+
+            iconSize:     [18, 18], // size of the icon
+            iconAnchor:   [9, 9], // point of the icon which will correspond to marker's location
+            popupAnchor:  [0, -9] // point from which the popup should open relative to the iconAnchor
+        });
+
+        var markerGroup = L.layerGroup().addTo(map);
+
+        let b1_1 = [43.20996, 43.21005, 43.21013, 43.21022, 43.21029];
+        let b1_2 = [27.92082, 27.92094, 27.92105, 27.92117, 27.92126];
+
+        let b2_1 = [43.20988, 43.20997, 43.21006, 43.21014, 43.21023];
+        let b2_2 = [27.92094, 27.92107, 27.92116, 27.92128, 27.92138];
+
+        let b3_1 = [43.20979, 43.20969, 43.20961, 43.20954, 43.20945];
+        let b3_2 = [27.92094, 27.92108, 27.9212, 27.9213, 27.92141];
+
+        let b4_1 = [43.20972, 43.20963, 43.20954, 43.20945, 43.20937];
+        let b4_2 = [27.92085, 27.92098, 27.92111, 27.92123, 27.92134];
+
+        let b5_1 = [43.20973, 43.20964, 43.20957, 43.20949, 43.20942];
+        let b5_2 = [27.92073, 27.92064, 27.92053, 27.92043, 27.92033];
+
+        let b6_1 = [43.20981, 43.20974, 43.20966, 43.20959, 43.20951];
+        let b6_2 = [27.92062, 27.92052, 27.92042, 27.92033, 27.92023];
+
+        let b7_1 = [43.2099, 43.20999, 43.2101, 43.2102, 43.2103];
+        let b7_2 = [27.9206, 27.92046, 27.92031, 27.92018, 27.92002];
+
+        let b8_1 = [43.20997, 43.21006, 43.21016, 43.21026, 43.21036];
+        let b8_2 = [27.92069, 27.92055, 27.92039, 27.92026, 27.92011];
+
+        let s1_1 = [43.2106, 43.2107, 43.21078, 43.21093, 43.21101, 43.21109];
+        let s1_2 = [27.92006, 27.92019, 27.9203, 27.9205, 27.9206, 27.92071];
+
+        let s2_1 = [43.21078, 43.21071, 43.21064, 43.21057, 43.21051];
+        let s2_2 = [27.92049, 27.92059, 27.92069, 27.92078, 27.92087];
+
+        let s3_1 = [43.21112, 43.21105, 43.21099, 43.21092, 43.21085];
+        let s3_2 = [27.9209, 27.92099, 27.92109, 27.92118, 27.92128];
+
+        /// 8PM Aladin
+        //L.marker([43.2107, 27.92019], {icon: carIcon}).addTo(map);
+        
+        /// 8PM Cherven ploshtad
+        ///L.marker([43.20988, 27.92094], {icon: carIcon}).addTo(markerGroup);
+        
+        /// CO Hell's Food
+        ///L.marker([43.20979, 27.92094], {icon: carIcon}).addTo(markerGroup);
+        
+        /// CO ParkMart
+        ///L.marker([43.20972, 27.92085], {icon: carIcon}).addTo(markerGroup);
+        
+        /// 8PM Telenor
+        ///L.marker([43.20973, 27.92073], {icon: carIcon}).addTo(markerGroup);
+
+        /// 8PM Varchev
+        ///L.marker([43.20981, 27.92062], {icon: carIcon}).addTo(markerGroup);
+
+        /// CO OBB
+        ///L.marker([43.2099, 27.9206], {icon: carIcon}).addTo(markerGroup);
+
+        /// CO Aladin
+        ///L.marker([43.20997, 27.92069], {icon: carIcon}).addTo(markerGroup);
+        
+
+        function randomizeMap(){
+            markerGroup.eachLayer(function (layer) {
+                map.removeLayer(layer);
+            });
+            
+            var i;
+
+            var randomNum = Math.floor(Math.random() * 6);
+            for (i = 0; i < randomNum; i++) {
+                L.marker([b1_1[i], b1_2[i]], {icon: carIcon}).addTo(markerGroup);
+            }
+            if (randomNum < 3) polyline_b1.setStyle({color: 'green'});
+            else if (randomNum < 4) polyline_b1.setStyle({color: '#FEA100'});
+            else if (randomNum < 5) polyline_b1.setStyle({color: '#F24B0E'});
+            else polyline_b1.setStyle({color: '#C00000'});
+
+            var randomNum = Math.floor(Math.random() * 6);
+            for (i = 0; i < randomNum; i++) {
+                L.marker([b2_1[i], b2_2[i]], {icon: carIcon}).addTo(markerGroup);
+            }
+            if (randomNum < 3) polyline_b2.setStyle({color: 'green'});
+            else if (randomNum < 4) polyline_b2.setStyle({color: '#FEA100'});
+            else if (randomNum < 5) polyline_b2.setStyle({color: '#F24B0E'});
+            else polyline_b2.setStyle({color: '#C00000'});
+
+            var randomNum = Math.floor(Math.random() * 6);
+            for (i = 0; i < randomNum; i++) {
+                L.marker([b3_1[i], b3_2[i]], {icon: carIcon}).addTo(markerGroup);
+            }
+            if (randomNum < 3) polyline_b3.setStyle({color: 'green'});
+            else if (randomNum < 4) polyline_b3.setStyle({color: '#FEA100'});
+            else if (randomNum < 5) polyline_b3.setStyle({color: '#F24B0E'});
+            else polyline_b3.setStyle({color: '#C00000'});
+
+            var randomNum = Math.floor(Math.random() * 6);
+            for (i = 0; i < randomNum; i++) {
+                L.marker([b4_1[i], b4_2[i]], {icon: carIcon}).addTo(markerGroup);
+            }
+            if (randomNum < 3) polyline_b4.setStyle({color: 'green'});
+            else if (randomNum < 4) polyline_b4.setStyle({color: '#FEA100'});
+            else if (randomNum < 5) polyline_b4.setStyle({color: '#F24B0E'});
+            else polyline_b4.setStyle({color: '#C00000'});
+
+            var randomNum = Math.floor(Math.random() * 6);
+            for (i = 0; i < randomNum; i++) {
+                L.marker([b5_1[i], b5_2[i]], {icon: carIcon}).addTo(markerGroup);
+            }
+            if (randomNum < 3) polyline_b5.setStyle({color: 'green'});
+            else if (randomNum < 4) polyline_b5.setStyle({color: '#FEA100'});
+            else if (randomNum < 5) polyline_b5.setStyle({color: '#F24B0E'});
+            else polyline_b5.setStyle({color: '#C00000'});
+
+            var randomNum = Math.floor(Math.random() * 6);
+            for (i = 0; i < randomNum; i++) {
+                L.marker([b6_1[i], b6_2[i]], {icon: carIcon}).addTo(markerGroup);
+            }
+            if (randomNum < 3) polyline_b6.setStyle({color: 'green'});
+            else if (randomNum < 4) polyline_b6.setStyle({color: '#FEA100'});
+            else if (randomNum < 5) polyline_b6.setStyle({color: '#F24B0E'});
+            else polyline_b6.setStyle({color: '#C00000'});
+
+            var randomNum = Math.floor(Math.random() * 6);
+            for (i = 0; i < randomNum; i++) {
+                L.marker([b7_1[i], b7_2[i]], {icon: carIcon}).addTo(markerGroup);
+            }
+            if (randomNum < 3) polyline_b7.setStyle({color: 'green'});
+            else if (randomNum < 4) polyline_b7.setStyle({color: '#FEA100'});
+            else if (randomNum < 5) polyline_b7.setStyle({color: '#F24B0E'});
+            else polyline_b7.setStyle({color: '#C00000'});
+
+            var randomNum = Math.floor(Math.random() * 6);
+            for (i = 0; i < randomNum; i++) {
+                L.marker([b8_1[i], b8_2[i]], {icon: carIcon}).addTo(markerGroup);
+            }
+            if (randomNum < 3) polyline_b8.setStyle({color: 'green'});
+            else if (randomNum < 4) polyline_b8.setStyle({color: '#FEA100'});
+            else if (randomNum < 5) polyline_b8.setStyle({color: '#F24B0E'});
+            else polyline_b8.setStyle({color: '#C00000'});
+
+            var randomNum = Math.floor(Math.random() * 6);
+            for (i = 0; i < randomNum; i++) {
+                L.marker([s1_1[i], s1_2[i]], {icon: carIcon}).addTo(markerGroup);
+            }
+            if (randomNum < 3) polyline_s1.setStyle({color: 'green'});
+            else if (randomNum < 4) polyline_s1.setStyle({color: '#FEA100'});
+            else if (randomNum < 5) polyline_s1.setStyle({color: '#F24B0E'});
+            else polyline_s1.setStyle({color: '#C00000'});
+
+            var randomNum = Math.floor(Math.random() * 6);
+            for (i = 0; i < randomNum; i++) {
+                L.marker([s2_1[i], s2_2[i]], {icon: carIcon}).addTo(markerGroup);
+            }
+            if (randomNum < 3) polyline_s2.setStyle({color: 'green'});
+            else if (randomNum < 4) polyline_s2.setStyle({color: '#FEA100'});
+            else if (randomNum < 5) polyline_s2.setStyle({color: '#F24B0E'});
+            else polyline_s2.setStyle({color: '#C00000'});
+
+            var randomNum = Math.floor(Math.random() * 6);
+            for (i = 0; i < randomNum; i++) {
+                L.marker([s3_1[i], s3_2[i]], {icon: carIcon}).addTo(markerGroup);
+            }
+            if (randomNum < 3) polyline_s3.setStyle({color: 'green'});
+            else if (randomNum < 4) polyline_s3.setStyle({color: '#FEA100'});
+            else if (randomNum < 5) polyline_s3.setStyle({color: '#F24B0E'});
+            else polyline_s3.setStyle({color: '#C00000'});
+
+        }
+
+        randomizeMap();
+        var mapRunning = setInterval(randomizeMap, 2000);
+
+    </script>
+  </body>
+</html>
